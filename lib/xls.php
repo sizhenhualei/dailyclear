@@ -195,7 +195,7 @@ function rq_xls_send($filenameBase, array $sheets)
     $ascii = preg_replace('/[^\x20-\x7E]/', '_', $filenameBase);
     $ascii = str_replace(['"', '\\', '/'], '_', (string) $ascii);
     if (trim($ascii, '_ ') === '') {
-        $ascii = 'riqingbiao';
+        $ascii = 'dailyclear';
     }
 
     if (!headers_sent()) {

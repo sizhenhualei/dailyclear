@@ -1,0 +1,16 @@
+# 本地配置（含数据库密码），不要提交到仓库
+lib/config.php
+
+# SQLite 数据文件
+data/*.sqlite
+data/*.sqlite-journal
+data/*.sqlite-wal
+data/*.sqlite-shm
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.log

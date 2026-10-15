@@ -1,0 +1,10 @@
+# 这个目录存放 SQLite 数据文件（DB_DRIVER = 'sqlite' 时）。
+# 里面的东西不应该被浏览器直接下载，所以禁止 Web 访问。
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

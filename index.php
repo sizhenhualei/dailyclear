@@ -69,7 +69,7 @@ $total = count(rq_subjects());
         <a class="btn" href="export.php" title="导出本周（周一 ~ 周日）的日清表">导出本周 xls</a>
     </div>
 
-    <p class="footnote site-foot">Powered By 司振华蕾 &amp; DSH</p>
+    <p class="footnote site-foot">Powered By 华蕾 &amp; DSH</p>
 </main>
 
 <?php rq_render_modal(); ?>

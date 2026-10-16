@@ -110,8 +110,8 @@ Apache 下也可以给 `lib/` 加一条 `Require all denied`，本程序的所�
 
 ## 许可
 
-[MIT](LICENSE) © 2026 司振华蕾
+[MIT](LICENSE) © 2026 华蕾
 
 ---
 
-Powered By 司振华蕾 & DSH
+Powered By 华蕾 & DSH

@@ -63,6 +63,8 @@ function rq_render_modal()
             <span id="f-count">0 / <?= $maxLen ?></span>
         </div>
 
+        <p class="modal-warn" id="f-warn" role="alert" hidden></p>
+
         <div class="modal-actions">
             <button type="button" class="btn danger" id="f-delete">清空</button>
             <span class="spacer"></span>
@@ -86,6 +88,6 @@ function rq_render_head($title)
     <meta name="theme-color" content="#2563eb">
     <title><?= rq_h($title) ?></title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232563eb'/%3E%3Ctext x='32' y='46' font-size='36' text-anchor='middle' fill='white' font-family='sans-serif'%3E%E6%97%A5%3C/text%3E%3C/svg%3E">
-    <link rel="stylesheet" href="assets/style.css?v=11">
+    <link rel="stylesheet" href="assets/style.css?v=14">
     <?php
 }

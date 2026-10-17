@@ -23,7 +23,10 @@
 * { box-sizing: border-box; }
 
 html {
-    font-size: 16px;
+    /* 全站字号 = --fs-base（跟着屏幕断点走）× --fs-scale（老师在页面上按 + / − 调） */
+    --fs-base: 16;
+    --fs-scale: 1;
+    font-size: calc(var(--fs-base) * 1px * var(--fs-scale));
     -webkit-text-size-adjust: 100%;
 }
 
@@ -55,6 +58,7 @@ body {
 }
 
 .topbar-in {
+    position: relative;
     max-width: 1760px;
     margin: 0 auto;
     padding: .7rem 1.1rem .75rem;
@@ -145,6 +149,88 @@ body {
     display: flex;
     align-items: center;
     gap: .5rem;
+}
+
+/* 字号调节器：左上角「字体 － ＋」，和右上角的布局切换器左右对称 */
+.fs-switch {
+    position: absolute;
+    left: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 2px 2px .52rem;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.fs-switch .fs-label {
+    margin-right: .1rem;
+    color: var(--ink-3);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+}
+
+.fs-switch button {
+    width: 1.5rem;
+    padding: .16rem 0;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink-2);
+    font: inherit;
+    font-size: .8rem;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+}
+
+.fs-switch button:hover { background: #f4f6f9; }
+
+.fs-switch button.off {
+    background: transparent;
+    opacity: .35;
+    cursor: default;
+}
+
+/* 布局切换器：右上角三个小按钮，不抢内容（手机竖屏时藏起来，那里只有单列有意义） */
+.layout-switch {
+    position: absolute;
+    right: 1.1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    background: #fff;
+}
+
+.layout-switch button {
+    padding: .16rem .5rem;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--ink-3);
+    font: inherit;
+    font-size: .74rem;
+    font-weight: 600;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background .12s, color .12s;
+}
+
+.layout-switch button:hover { color: var(--ink-2); background: #f4f6f9; }
+
+.layout-switch button.on {
+    background: #eef2f7;
+    color: var(--ink);
+    font-weight: 700;
 }
 
 /* ---------------------------- 按钮 ---------------------------- */
@@ -505,6 +591,31 @@ textarea:focus {
 
 .modal-actions .spacer { margin-left: auto; }
 
+/* 清空前的 3 秒二次确认警告（不可恢复，红色提示条） */
+.modal-warn {
+    margin: .9rem 0 0;
+    padding: .55rem .8rem;
+    border: 1px solid #f3c9c0;
+    border-radius: 10px;
+    background: #fdeee9;
+    color: #b3351b;
+    font-size: .88rem;
+    font-weight: 600;
+    line-height: 1.55;
+}
+
+.modal-warn[hidden] { display: none; }
+
+.btn.armed {
+    border-color: #b91c1c;
+    background: #b91c1c;
+    color: #fff;
+}
+
+.btn.armed:hover { background: #9f1717; }
+
+.btn:disabled { cursor: not-allowed; opacity: .7; }
+
 /* ---------------------------- 提示条 ---------------------------- */
 
 .toast {
@@ -694,12 +805,12 @@ table.rec td.time { width: 6rem; color: var(--ink-3); font-size: .82rem; white-s
 @media (min-width: 700px) {
     .grid { grid-template-columns: repeat(2, 1fr); }
     .admin-cols { grid-template-columns: 380px 1fr; }
-    html { font-size: 16.5px; }
+    html { --fs-base: 16.5; }
 }
 
 @media (min-width: 1080px) {
     .grid { grid-template-columns: repeat(3, 1fr); }
-    html { font-size: 17px; }
+    html { --fs-base: 17; }
     .wrap { padding: 1.15rem 1.4rem 2.2rem; }
     .admin-wrap { padding: 1.3rem 1.4rem 3rem; }
     .admin-cols { grid-template-columns: 420px 1fr; }
@@ -708,32 +819,45 @@ table.rec td.time { width: 6rem; color: var(--ink-3); font-size: .82rem; white-s
 
 /* 教室大屏 / 大分辨率显示器：字号继续放大，两行三列刚好铺满一屏 */
 @media (min-width: 1500px) {
-    html { font-size: 18px; }
+    html { --fs-base: 18; }
     .topbar-in, .wrap, .admin-wrap { max-width: 1900px; }
 }
 
 @media (min-width: 1300px) and (min-height: 700px) {
     /* 大屏：六张卡把第一屏铺满（行高等分拉伸），填写/导出按钮被挤到首屏之下 */
-    .grid { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; min-height: calc(100vh - 150px); }
+    .grid { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; min-height: calc(100vh - 7.5rem); }
     .card { min-height: 0; }
     .card-body { display: flex; align-items: flex-start; }
     .content { font-size: 1.06rem; }
     .today-date { font-size: 1.6rem; }
 }
 
+/* 4:3 / 5:4 的老式教室大屏（1024×768、1280×960、1400×1050、1280×1024…）：
+   这类屏宽度常常不到 1080，会掉成「两列三行」；这里按屏幕比例兜底，
+   保证还是「三列两行」并且铺满第一屏。 */
+@media (min-width: 880px) and (min-height: 620px)
+       and (min-aspect-ratio: 5/4) and (max-aspect-ratio: 3/2) {
+    .grid { grid-template-columns: repeat(3, 1fr); grid-auto-rows: 1fr; min-height: calc(100vh - 7.5rem); }
+    .card { min-height: 0; }
+    .card-body { display: flex; align-items: flex-start; }
+    .today-date { font-size: 1.55rem; }
+}
+
 @media (min-width: 1900px) {
-    html { font-size: 20px; }
+    html { --fs-base: 20; }
     .topbar-in, .wrap, .admin-wrap { max-width: 2300px; }
 }
 
 @media (min-width: 2400px) {
-    html { font-size: 23px; }
+    html { --fs-base: 23; }
     .topbar-in, .wrap, .admin-wrap { max-width: 2800px; }
 }
 
 /* 手机上的紧凑处理 */
 @media (max-width: 560px) {
     .topbar-in { padding: .65rem .8rem .75rem; }
+    .layout-switch { display: none; }
+    .fs-switch { display: none; }
     .today-date { font-size: 1.18rem; }
     .today-meta { font-size: .84rem; }
     .brand { font-size: 1.15rem; }
@@ -747,13 +871,42 @@ table.rec td.time { width: 6rem; color: var(--ink-3); font-size: .82rem; white-s
     .chips { grid-template-columns: repeat(3, 1fr); }
 }
 
+/* 布局切换器强制覆盖：老师按教室屏幕的实际效果点一次，选中的方案记在本机浏览器里。
+   （html 上的 data-layout 由 index.php 的启动脚本和 app.js 共同维护） */
+html[data-layout="3"] .grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    grid-auto-rows: 1fr;
+    min-height: calc(100vh - 7.5rem);
+}
+
+html[data-layout="3"] .card { min-height: 0; }
+
+html[data-layout="3"] .card-body { display: flex; align-items: flex-start; }
+
+html[data-layout="1"] .grid {
+    grid-template-columns: 1fr !important;
+    grid-auto-rows: auto;
+    min-height: 0;
+}
+
+html[data-layout="1"] .card {
+    min-height: 16vh;
+    box-shadow: 0 0 0 1px var(--line);
+}
+
+html[data-layout="1"] .card-body { display: block; }
+
+/* 单列时一行太长不好读，正文限宽 */
+html[data-layout="1"] .content { max-width: 72ch; }
+
 /* 打印（浏览器里 Ctrl+P 也能得到一张干净的表） */
 @media print {
-    .page-actions, .topbar-actions, .toast, .modal { display: none !important; }
+    .page-actions, .topbar-actions, .toast, .modal, .layout-switch, .fs-switch { display: none !important; }
     .topbar { position: static; border-bottom: 1px solid #ddd; }
     body { background: #fff; }
     .card { break-inside: avoid; box-shadow: none; min-height: 0 !important; }
     .grid { padding: 0; border-radius: 0; box-shadow: none; }
     .grid { grid-template-columns: repeat(2, 1fr) !important; }
+    html[data-layout] .grid { grid-template-columns: repeat(2, 1fr) !important; }
     .wrap { padding: 0; max-width: none; }
 }

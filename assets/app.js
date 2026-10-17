@@ -8,6 +8,111 @@
    · 全程不刷新页面；不自动刷新
    ========================================================================== */
 
+/* ------------------------- 字号调节（字体 － ＋） -------------------------
+   教室大屏 / 投影仪看不清时，老师自己放大缩小整个界面：
+   改根元素的 --fs-scale，所有 rem 尺寸跟着变大；点一次记在这台设备上。 */
+
+(function () {
+    var root = document.documentElement;
+    var host = document.getElementById('fs-switch');
+    if (!host) { return; }
+
+    var STEPS = [0.85, 1, 1.15, 1.3, 1.45, 1.6];
+    var KEY = 'rq.fs';
+    var btns = Array.prototype.slice.call(host.querySelectorAll('[data-fs]'));
+
+    function current() {
+        var v = parseFloat(root.style.getPropertyValue('--fs-scale'));
+        return (isFinite(v) && v > 0) ? v : 1;
+    }
+
+    function nearestIndex(v) {
+        var best = 0, diff = Infinity;
+        for (var i = 0; i < STEPS.length; i++) {
+            var d = Math.abs(STEPS[i] - v);
+            if (d < diff) { diff = d; best = i; }
+        }
+        return best;
+    }
+
+    function paint() {
+        var i = nearestIndex(current());
+        btns.forEach(function (b) {
+            var dir = parseInt(b.getAttribute('data-fs'), 10);
+            var atLimit = (dir < 0 && i === 0) || (dir > 0 && i === STEPS.length - 1);
+            b.classList.toggle('off', atLimit);
+            b.setAttribute('aria-disabled', atLimit ? 'true' : 'false');
+        });
+    }
+
+    function apply(v) {
+        if (v === 1) { root.style.removeProperty('--fs-scale'); }
+        else { root.style.setProperty('--fs-scale', String(v)); }
+
+        try {
+            if (v === 1) { localStorage.removeItem(KEY); }
+            else { localStorage.setItem(KEY, String(v)); }
+        } catch (err) { /* 隐私模式下写不了也不影响本次 */ }
+
+        paint();
+    }
+
+    btns.forEach(function (b) {
+        b.addEventListener('click', function (e) {
+            e.preventDefault();
+            var dir = parseInt(b.getAttribute('data-fs'), 10) > 0 ? 1 : -1;
+            var i = nearestIndex(current()) + dir;
+            if (i < 0 || i >= STEPS.length) { return; }
+            apply(STEPS[i]);
+        });
+    });
+
+    paint();
+})();
+
+/* ------------------------- 布局切换（自动 / 三列 / 单列） -------------------------
+   教室大屏有的宽有的窄，自动排版不一定合心意，所以留一个手动开关：
+   点一次就记在这台设备的浏览器里，以后打开还是这个布局。 */
+
+(function () {
+    var root = document.documentElement;
+    var host = document.getElementById('layout-switch');
+    if (!host) { return; }
+
+    var btns = Array.prototype.slice.call(host.querySelectorAll('[data-layout]'));
+    var KEY = 'rq.layout';
+
+    function paint() {
+        var cur = root.getAttribute('data-layout') || 'auto';
+        btns.forEach(function (b) {
+            var isOn = b.getAttribute('data-layout') === cur;
+            b.classList.toggle('on', isOn);
+            b.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+        });
+    }
+
+    btns.forEach(function (b) {
+        b.addEventListener('click', function (e) {
+            e.preventDefault();
+            var v = b.getAttribute('data-layout');
+            if (v === 'auto') {
+                root.removeAttribute('data-layout');
+            } else {
+                root.setAttribute('data-layout', v);
+            }
+            try {
+                if (v === 'auto') { localStorage.removeItem(KEY); }
+                else { localStorage.setItem(KEY, v); }
+            } catch (err) { /* 隐私模式下写不了也不影响本次 */ }
+            paint();
+            // 布局变了，回到顶部看效果
+            try { window.scrollTo(0, 0); } catch (err) { /* ignore */ }
+        });
+    });
+
+    paint();
+})();
+
 (function () {
     'use strict';
 
@@ -22,6 +127,7 @@
     var saveBtn   = document.getElementById('f-save');
     var titleEl   = document.getElementById('f-title');
     var countEl   = document.getElementById('f-count');
+    var warnEl    = document.getElementById('f-warn');
     var toastEl   = document.getElementById('toast');
     var chips     = Array.prototype.slice.call(modal.querySelectorAll('.chip'));
     var maxLen    = parseInt(modal.getAttribute('data-maxlen') || '2000', 10);
@@ -37,6 +143,65 @@
 
     var state = { day: '', subject: '', original: '', busy: false };
     var toastTimer = null;
+
+    /* ------------------------- 清空的三秒二次确认 -------------------------
+       清空不可恢复，所以第一次点只「上膛」，按钮进入 3 秒倒计时（期间点不动），
+       倒计时结束才允许真正确认；中途打字、换科目、关闭弹窗都自动撤销。 */
+    var DEL_SECONDS = 3;
+    var delTimer = null;
+    var delLeft = 0;
+    var delArmed = false;
+
+    function delReset() {
+        if (delTimer) { clearInterval(delTimer); delTimer = null; }
+        delLeft = 0;
+        delArmed = false;
+        if (delBtn) {
+            delBtn.textContent = '清空';
+            delBtn.classList.remove('armed');
+            delBtn.disabled = false;
+        }
+        if (warnEl) {
+            warnEl.hidden = true;
+            warnEl.textContent = '';
+        }
+    }
+
+    function delArm() {
+        if (delTimer) { clearInterval(delTimer); }
+        delArmed = false;
+        delLeft = DEL_SECONDS;
+        if (delBtn) {
+            delBtn.textContent = '确认清空（' + delLeft + '）';
+            delBtn.classList.remove('armed');
+            delBtn.disabled = true;      // 倒计时期间点不动，避免连点误清空
+        }
+        if (warnEl) {
+            warnEl.hidden = false;
+            warnEl.textContent = '清空后不可恢复，' + delLeft + ' 秒后可确认。';
+        }
+        delTimer = setInterval(function () {
+            delLeft--;
+            if (delLeft > 0) {
+                if (delBtn) { delBtn.textContent = '确认清空（' + delLeft + '）'; }
+                if (warnEl) {
+                    warnEl.textContent = '清空后不可恢复，' + delLeft + ' 秒后可确认。';
+                }
+                return;
+            }
+            clearInterval(delTimer);
+            delTimer = null;
+            delArmed = true;
+            if (delBtn) {
+                delBtn.textContent = '确认清空';
+                delBtn.classList.add('armed');
+                delBtn.disabled = false;
+            }
+            if (warnEl) {
+                warnEl.textContent = '再点一次「确认清空」就真的删除了，不可恢复。';
+            }
+        }, 1000);
+    }
 
     /* ------------------------- 小工具 ------------------------- */
 
@@ -89,6 +254,7 @@
         if (state.subject && state.day) {
             drafts[draftKey(state.day, state.subject)] = textarea.value;
         }
+        delReset();   // 换了科目，之前那次的清空确认作废
         state.subject = key;
         if (subjInput) { subjInput.value = key; }
         chips.forEach(function (c) {
@@ -153,6 +319,7 @@
         if (state.subject && state.day) {
             drafts[draftKey(state.day, state.subject)] = textarea.value;
         }
+        delReset();
         modal.classList.remove('open');
         document.documentElement.style.overflow = '';
     }
@@ -289,7 +456,11 @@
     });
 
     if (textarea) {
-        textarea.addEventListener('input', updateCount);
+        textarea.addEventListener('input', function () {
+            // 动笔了：说明是改内容不是要清空，撤掉清空确认
+            if (delArmed || delTimer) { delReset(); }
+            updateCount();
+        });
         textarea.addEventListener('keydown', function (e) {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -302,9 +473,18 @@
 
     if (delBtn) {
         delBtn.addEventListener('click', function () {
-            textarea.value = '';
-            updateCount();
-            submit();
+            if (state.busy) { return; }
+
+            if (delArmed) {
+                // 第二下：真的清空
+                delReset();
+                textarea.value = '';
+                updateCount();
+                submit();
+                return;
+            }
+            // 第一下：只上膛，3 秒后才能确认
+            delArm();
         });
     }
 

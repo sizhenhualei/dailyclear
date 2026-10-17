@@ -29,14 +29,31 @@ $total = count(rq_subjects());
 </head>
 <body>
 
+<!-- 先套用上次选的布局与字号，避免刷新时闪一下 -->
+<script>(function(){try{var m=localStorage.getItem('rq.layout');if(m==='3'||m==='1'){document.documentElement.setAttribute('data-layout',m);}var f=parseFloat(localStorage.getItem('rq.fs'));if(f&&f>0.5&&f<2.5){document.documentElement.style.setProperty('--fs-scale',String(f));}}catch(e){}})();</script>
+
 <header class="topbar">
     <div class="topbar-in">
+        <!-- 字号调节：字体 － ＋（教室大屏看不清时放大，记在这台设备的浏览器里） -->
+        <div class="fs-switch" id="fs-switch" role="group" aria-label="字号">
+            <span class="fs-label">字体</span>
+            <button type="button" data-fs="-1" title="缩小字体" aria-label="缩小字体">－</button>
+            <button type="button" data-fs="1" title="放大字体" aria-label="放大字体">＋</button>
+        </div>
+
         <div class="today-block">
             <div class="today-date"><?= rq_h(rq_date_cn($today)) ?></div>
             <div class="today-meta">
                 <span class="wk"><?= rq_h(rq_weekday_cn($today)) ?></span>
                 <span class="pill<?= $filled === $total ? ' ok' : '' ?>" id="fill-summary">已填 <?= $filled ?>/<?= $total ?> 科</span>
             </div>
+        </div>
+
+        <!-- 布局切换：自动 / 强制三列 / 强制单列（选一次，记在这台设备的浏览器里） -->
+        <div class="layout-switch" id="layout-switch" role="group" aria-label="显示布局">
+            <button type="button" data-layout="auto" title="按屏幕自动排版">自动</button>
+            <button type="button" data-layout="3" title="强制三列（六科三行两列铺满一屏）">三列</button>
+            <button type="button" data-layout="1" title="强制单列（一科一行，从前往后滑）">单列</button>
         </div>
     </div>
 </header>
@@ -74,6 +91,6 @@ $total = count(rq_subjects());
 
 <?php rq_render_modal(); ?>
 <?php rq_render_data_script($today, $records, '今天还没有填写'); ?>
-<script src="assets/app.js?v=5"></script>
+<script src="assets/app.js?v=7"></script>
 </body>
 </html>

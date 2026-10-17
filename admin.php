@@ -304,7 +304,7 @@ $nextMonth   = date('Y-m', strtotime($mFirst . '+1 month'));
 
 <?php rq_render_modal(); ?>
 <?php rq_render_data_script($day, $records, '未填写'); ?>
-<script src="assets/app.js?v=5"></script>
+<script src="assets/app.js?v=7"></script>
 <script src="assets/order.js?v=1"></script>
 </body>
 </html>
